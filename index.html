@@ -1,101 +1,486 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>デジタルライフプランナー｜会話サポート</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PCデポ デジタルライフプランナー アシスタント</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif;background:#f5f7fa;color:#18212b}
-header{background:#123a63;color:white;padding:18px 28px;display:flex;justify-content:space-between;align-items:center}
-header h1{font-size:20px;margin:0} header span{font-size:13px;opacity:.85}
-main{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;padding:20px;max-width:1400px;margin:auto}
-.card{background:white;border:1px solid #dfe5eb;border-radius:12px;padding:18px;box-shadow:0 2px 8px #00000008}
-h2{font-size:17px;margin:0 0 14px}.hint{font-size:13px;color:#66727e;line-height:1.6}
-textarea{width:100%;height:300px;border:1px solid #cbd5df;border-radius:8px;padding:13px;font-size:15px;line-height:1.7;resize:vertical}
-button{border:0;border-radius:8px;padding:11px 18px;background:#1769aa;color:white;font-weight:700;cursor:pointer;margin-top:10px}
-button.secondary{background:#eef3f7;color:#28465f;margin-left:7px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.item{border:1px solid #e0e6eb;border-radius:9px;padding:12px;background:#fbfcfd}.label{font-size:12px;color:#75818d}.value{font-size:15px;font-weight:700;margin-top:4px}
-.tag{display:inline-block;padding:5px 9px;background:#eaf4ff;color:#125b91;border-radius:99px;font-size:12px;margin:3px}
-.solution{border-left:4px solid #1769aa;background:#f7fbff;padding:12px;margin:9px 0;border-radius:5px}
-.solution strong{display:block;margin-bottom:4px}.score{float:right;font-size:12px;color:#1769aa}
-.question{background:#fff8e8;border:1px solid #f1d899;padding:11px;border-radius:7px;margin-top:8px}
-.alert{display:none;background:#fff0f0;color:#9d2626;padding:10px;border-radius:7px;margin-top:10px;font-size:13px}
-@media(max-width:850px){main{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
+  :root{
+    --blue:#0b4da2; --blue-d:#083a7a; --blue-l:#e8f0fb;
+    --red:#c62828; --orange:#ef6c00; --grey:#607d8b; --green:#1b7d43;
+    --ink:#16202b; --ink-2:#5a6b7c; --line:#d8e0ea; --bg:#f4f7fb; --card:#fff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",system-ui,sans-serif;
+    font-size:15px;line-height:1.75;-webkit-font-smoothing:antialiased}
+  header{background:linear-gradient(135deg,var(--blue) 0%,var(--blue-d) 100%);color:#fff;padding:22px 20px}
+  .wrap{max-width:1000px;margin:0 auto}
+  header h1{margin:0;font-size:21px;letter-spacing:.02em}
+  header p{margin:6px 0 0;font-size:13px;opacity:.9}
+  .brandrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .tag{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+    border-radius:999px;padding:2px 10px;font-size:11.5px}
+  main{padding:18px 20px 60px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 2px rgba(16,32,48,.04)}
+  h2{font-size:16px;margin:0 0 10px;padding-left:9px;border-left:4px solid var(--blue)}
+  label{display:block;font-size:13px;font-weight:700;color:var(--ink-2);margin-bottom:6px}
+  textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px 12px;
+    font-family:inherit;font-size:14.5px;line-height:1.7;resize:vertical;background:#fcfdff;color:var(--ink)}
+  textarea:focus{outline:2px solid #9dc0ee;border-color:var(--blue)}
+  #talk{min-height:112px}
+  .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:11px}
+  button{font-family:inherit;font-size:14px;font-weight:700;border-radius:8px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 15px}
+  button:hover{border-color:#9dc0ee;background:#f7fbff}
+  button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  button.primary:hover{background:var(--blue-d)}
+  .samples{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .chipsample{font-size:12.5px;font-weight:600;background:var(--blue-l);border:1px solid #cfe0f7;
+    color:var(--blue-d);border-radius:999px;padding:6px 12px;cursor:pointer}
+  .chipsample:hover{background:#dbe9fb}
+  .hidden{display:none!important}
+  .stat{display:flex;gap:10px;flex-wrap:wrap}
+  .stat div{flex:1 1 150px;background:#f7fafd;border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+  .stat span{display:block;font-size:11.5px;color:var(--ink-2);font-weight:700}
+  .stat b{font-size:19px;color:var(--blue-d)}
+  .card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:15px 17px;margin-bottom:13px}
+  .chead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .chead .ico{font-size:21px}
+  .chead h3{margin:0;font-size:16.5px}
+  .badge{font-size:11.5px;font-weight:800;color:#fff;border-radius:999px;padding:3px 11px}
+  .b-1{background:var(--red)} .b-2{background:var(--orange)} .b-3{background:var(--grey)}
+  .barwrap{margin:7px 0 10px}
+  .bar{height:9px;border-radius:999px;background:#eaf0f7;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#4a90d9,var(--blue));border-radius:999px}
+  .barwrap small{font-size:11.5px;color:var(--ink-2)}
+  .hits{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}
+  .hit{font-size:11.5px;background:#fff5e8;border:1px solid #f6d9b3;color:#8a5000;border-radius:6px;padding:2px 8px}
+  .sec{margin-top:11px}
+  .sec .lb{font-size:12px;font-weight:800;color:var(--blue-d);letter-spacing:.03em;margin-bottom:5px}
+  .sol{display:block;padding:9px 12px;border:1px solid #cfe0f7;background:#f7fbff;border-radius:8px;
+    margin-bottom:7px;color:var(--blue-d);text-decoration:none;font-weight:700;font-size:14px}
+  .sol:hover{background:#eaf3ff}
+  .sol small{display:block;font-weight:400;font-size:11.5px;color:var(--ink-2);margin-top:2px;word-break:break-all}
+  ul.fu{margin:0;padding-left:20px}
+  ul.fu li{margin-bottom:2px}
+  .script{background:#f4f8f4;border:1px solid #cfe3d4;border-left:4px solid var(--green);
+    border-radius:8px;padding:11px 13px;font-size:14px}
+  .planbox{background:#fbfdff;border:1px dashed #b9d2ef;border-radius:9px;padding:12px 14px;
+    font-size:13.5px;line-height:1.85;white-space:pre-wrap;word-break:break-word}
+  .note{font-size:12px;color:var(--ink-2);background:#fff9ec;border:1px solid #f3e3bd;
+    border-radius:8px;padding:9px 12px;margin-top:10px}
+  details{border:1px solid var(--line);border-radius:10px;padding:11px 14px;background:#fff}
+  summary{cursor:pointer;font-weight:800;color:var(--blue-d);font-size:14px}
+  .catgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:9px;margin-top:11px}
+  .cat{background:#f7fafd;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:12.5px}
+  .cat b{display:block;font-size:13.5px;color:var(--blue-d);margin-bottom:3px}
+  .copied{font-size:12px;color:var(--green);font-weight:700;margin-left:8px}
+  footer{font-size:12px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:12px;margin-top:6px}
+  @media(max-width:600px){
+    main{padding:14px 12px 50px} header{padding:18px 14px} header h1{font-size:18px}
+  }
 </style>
 </head>
 <body>
-<header><h1>PC DEPOT｜デジタルライフプランナー 会話サポート</h1><span>会話から「困りごと」を見つけ、提案につなげる</span></header>
-<main>
-<section class="card">
-<h2>① 会員様との会話を入力</h2>
-<p class="hint">雑談を含めて、そのまま貼り付けてください。複数の発言でもOKです。</p>
-<textarea id="conversation" placeholder="例：
-会員様：最近スマホの写真がいっぱいになっちゃって。
-スタッフ：どのくらい撮られますか？
-会員様：旅行に行くと一気に増えます。パソコンにも移したいんだけど、やり方がよく分からなくて……。
-会員様：あと、家族で写真を共有できたら便利なんだけど。"></textarea>
-<button onclick="analyze()">会話を分析する</button><button class="secondary" onclick="clearAll()">クリア</button>
-<div id="alert" class="alert"></div>
-</section>
+<header>
+  <div class="wrap">
+    <div class="brandrow">
+      <h1>PCデポ デジタルライフプランナー アシスタント</h1>
+      <span class="tag">店頭会話 即時解析</span>
+      <span class="tag">オフライン動作</span>
+    </div>
+    <p>会員様の言葉をそのまま入力してください。潜在的な不便を抽出し、PCデポのサービスへ結びつけて、ヒアリング質問・トークスクリプトまで自動で組み立てます。</p>
+  </div>
+</header>
 
-<section class="card">
-<h2>② 抽出された「潜在的な不便」</h2>
-<div id="result"><p class="hint">会話を分析すると、ここに表示されます。</p></div>
-</section>
+<main class="wrap">
 
-<section class="card">
-<h2>③ デジタルライフ提案候補</h2>
-<div id="solutions"><p class="hint">分析結果に応じて提案候補が表示されます。</p></div>
-</section>
+  <section class="panel">
+    <label for="talk">会員様の言葉・会話メモ</label>
+    <textarea id="talk" placeholder="例：今年で6年目になるパソコンが、最近すごく遅くて……。あと家のWi-Fiがよく切れて、スマホの料金も高い気がしています。"></textarea>
+    <div class="row">
+      <button id="run" class="primary">潜在的な不便を抽出する</button>
+      <button id="clear">クリア</button>
+      <button id="copyall">提案メモをコピー</button>
+      <span id="copyflag"></span>
+    </div>
+    <div class="samples" id="samples"></div>
+  </section>
 
-<section class="card">
-<h2>④ 次に聞くと提案精度が上がる質問</h2>
-<div id="questions"><p class="hint">会員様への自然な追加質問を表示します。</p></div>
-</section>
+  <section id="summary" class="panel hidden"></section>
+  <div id="results"></div>
+  <section id="plan" class="panel hidden"></section>
+
+  <details class="panel">
+    <summary>抽出できる困りごと分類（14カテゴリ）と判定キーワード</summary>
+    <div class="catgrid" id="catgrid"></div>
+    <div class="note">判定は「キーワード一致の重み＋言い回しの多様さ＋緊急性（今すぐ・明日まで・水没 等）」でスコア化しています。同じ意味の別表現（例：遅い／重い／固まる）を複数使うほど優先度が上がります。</div>
+  </details>
+
+  <footer>
+    本ツールは会話整理の支援用です。掲載しているサービス名は pcdepot.co.jp で確認できたもののみを使用し、料金・提供条件・在庫は店頭でご確認ください。<br>
+    主要なご案内：パソコンクリニック／ドクタースマート、スマートフォン総合相談、通信料金見直し総合相談、訪問サポートサービス、インターネット安全対策セット、データバックアップサービス、データ復旧・救出サービス、パソコン買替えサポートパック、Value Pack、まかせて安心技術サポート、中古品買取、スマートライフメンバーズクラブ。
+  </footer>
 </main>
+
 <script>
-const rules=[
- {keys:["写真","画像","動画","容量","いっぱい","保存"],category:"写真・データ管理",
-  pain:"写真・動画の保存先や容量に不安がある可能性",needs:"「保存する」だけでなく「整理・共有・バックアップ」まで含めた環境づくり",
-  solutions:["写真バックアップ環境の整理","スマホとPC・クラウドの写真共有環境","ストレージ容量の見直し"],q:"写真は「保存できればOK」ですか？ それとも家族で見たり、探しやすく整理したいですか？"},
- {keys:["Wi-Fi","wifi","遅い","つながらない","電波","ネット"],category:"ネット・Wi-Fi",
-  pain:"家の中の通信品質に不満がある可能性",needs:"利用場所・端末・通信量を確認して家庭内ネット環境を整理",
-  solutions:["Wi-Fi環境の診断","ルーター・メッシュWi-Fiの見直し","家族の端末を含めた通信環境整理"],q:"特に困る場所はどこですか？ また、時間帯によって変わりますか？"},
- {keys:["遅い","重い","パソコン","PC","起動","動かない","買い替え"],category:"PC・端末",
-  pain:"端末性能または使い方に不便を感じている可能性",needs:"買い替えだけでなく、設定・整理・使い方を含めて原因を切り分ける",
-  solutions:["PCの状態・容量・設定の確認","用途に合わせた端末見直し","データ移行・初期設定サポート"],q:"一番ストレスを感じるのは、起動・動作・容量・操作のどれですか？"},
- {keys:["パスワード","ログイン","アカウント","忘れ","管理"],category:"アカウント・セキュリティ",
-  pain:"アカウント管理や安全性に負担を感じている可能性",needs:"使っているサービスを整理し、安全かつ管理しやすい状態にする",
-  solutions:["アカウント整理","パスワード管理環境の見直し","二段階認証など安全設定の確認"],q:"ログイン情報を紙・スマホ・ブラウザなど、どこで管理していますか？"},
- {keys:["家族","共有","子ども","子供","夫","妻","親","両親"],category:"家族のデジタル共有",
-  pain:"家族間の情報共有・端末利用に手間がある可能性",needs:"誰が・何を・どの端末で共有したいかを整理する",
-  solutions:["家族写真・ファイル共有環境","家族の端末設定・利用ルール整理","複数端末をまとめたサポート"],q:"ご家族の中で、誰と何を共有できると一番便利になりそうですか？"},
- {keys:["仕事","在宅","リモート","オンライン会議","会議","資料"],category:"仕事・学習環境",
-  pain:"仕事や学習でデジタル操作・環境に負担がある可能性",needs:"作業内容に合わせて端末・周辺機器・データ連携を整理",
-  solutions:["在宅ワーク環境の見直し","モニター・キーボード等の作業環境改善","PC・スマホ間のデータ連携整理"],q:"一日の中で、デジタル作業に一番時間がかかっている作業は何ですか？"},
- {keys:["タップ","入力","打つ","入力が面倒","手入力","手間"],category:"入力・操作の省力化",
-  pain:"同じ情報を何度も入力するなど、操作に時間がかかっている可能性",needs:"「何を繰り返しているか」を特定して入力・操作を短縮",
-  solutions:["定型入力・辞書・ショートカットの活用","スマホとPCの連携による入力省力化","よく使う操作の手順整理"],q:"同じ内容を何度も入力する場面は、具体的にどんな時ですか？"}
+/* =========================================================
+   解析エンジン（外部API不使用・オフライン動作）
+   サービス名は pcdepot.co.jp 公式サイトで確認できたもののみ
+   ========================================================= */
+const CONFIRM_NOTE = '料金・提供条件は店頭でご確認ください';
+
+const TAXONOMY = [
+  { id:'pc_slow', label:'パソコンの動作が遅い・重い', icon:'🐢',
+    triggers:[['さっきから遅',3],['最近遅',4],['動作が遅',4],['遅くなった',4],['遅い',3],['重い',2],['立ち上がらない',2],['起動に時間',3],['なかなか電源が入らな',3],['電源が入るまで',3],['固まる',3],['フリーズ',3],['カクカク',2],['反応が悪',3],['ファンがうるさ',2],['古いパソコン',2],['何年も使って',2],['そろそろ買い替え',1]],
+    question:'どの作業のときに遅いと感じますか（起動／ネット／Office／動画など）？ご購入から何年お使いですか？',
+    solutions:[['パソコンクリニック／ドクタースマート（診断・予約不要・他店購入品OK）','https://www.pcdepot.co.jp/consult/'],['まかせて安心技術サポート','https://www1.pcdepot.co.jp/'],['パソコン買替えサポートパック（データ移行サービス付き）','https://www.pcdepot.co.jp/products/pckaikae/index.html']],
+    script:'「毎日“待つ時間”が増えていませんか。まずパソコンクリニックで診断すると、メモリ増設やSSD交換でまだ快適に使えるのか、買い替えがお得なのかがはっきりします。診断は予約不要、他店で買ったパソコンでも承ります。」',
+    followups:['起動に何分かかりますか','空き容量はどのくらいですか','同時に開くアプリは何個くらいですか'] },
+
+  { id:'pc_break', label:'パソコンの故障・起動しない', icon:'🛠️',
+    triggers:[['起動しなくな',5],['電源が入らな',5],['壊れ',4],['画面が映らな',4],['画面が割れ',4],['電源ランプ',3],['再起動を繰り返',4],['エラーが出',3],['ブルースクリーン',4],['青い画面',3],['落ちる',2],['電源が落ち',3],['水をこぼ',4],['水没',4],['異音',3],['修理',2],['保証',1],['他店で買った',1]],
+    question:'いつからですか（直前の出来事：更新・停電・水こぼしなど）？中のデータのご希望はありますか？',
+    solutions:[['パソコンクリニック／ドクタースマート（診断・予約不要・他店購入品OK）','https://www.pcdepot.co.jp/consult/'],['訪問サポートサービス','https://www.pcdepot.co.jp/consult/visit/'],['データ復旧・救出サービス（データが読めない場合）','https://www.true-recovery.net/catalog/pcdepo.html']],
+    script:'「起動しないと“中の写真が……”とご不安ですよね。まずはクリニックで診断し、修理で直せるか、データを先に取り出してから直すかをご提案します。持ち込みが難しい場合は訪問サポートもございます。」',
+    followups:['修理と買い替え、どちらのご希望が強いですか','Officeのデータは必要ですか','お持ち込みは可能ですか（難しければ訪問）'] },
+
+  { id:'smartphone', label:'スマートフォンの困りごと', icon:'📱',
+    triggers:[['スマホ',3],['スマートフォン',3],['iPhone',3],['アイホン',2],['Android',2],['アンドロイド',2],['スマホの使い方',4],['操作がわからな',3],['料金が高い',2],['バッテリー',3],['充電が持た',3],['画面が割れ',3],['LINEが',2],['機種変更',3],['写真がたまり',2],['アプリが入らな',3],['スマホが重い',3],['スマホが熱い',2]],
+    question:'機種と使い始めた時期を教えてください。操作のお困りごとですか、端末の不調ですか？',
+    solutions:[['スマートフォン総合相談（予約不要・他店購入品OK）','https://www.pcdepot.co.jp/consult/smartphone/'],['ドクタースマート（スマホの診断）','https://www.pcdepot.co.jp/consult/'],['データバックアップサービス（写真の取り出し・保存）','https://www.pcdepot.co.jp/products/databackup/']],
+    script:'「スマホは“相談できる窓口”があると安心です。ドクタースマートでは、操作方法から写真の整理・バックアップ、機種変更まで、その場で一緒に確認できます。予約不要・他店購入品でも承ります。」',
+    followups:['操作のご相談ですか、端末の不調ですか','写真は何枚くらいありますか','機種変更のご予定はありますか'] },
+
+  { id:'network', label:'インターネット・Wi-Fi・通信料金', icon:'📶',
+    triggers:[['Wi-Fi',3],['wifi',3],['ワイファイ',3],['無線',2],['ネットがつながら',4],['つながりにく',3],['ネットが切れ',4],['ルーター',3],['通信が遅',4],['ネットが遅',4],['光回線',3],['プロバイダ',2],['通信料',3],['料金が高い',3],['スマホ代',3],['乗り換え',3],['見直し',3],['格安SIM',3],['一人暮らしを始め',3]],
+    question:'回線はどちらをお使いですか（光回線／ホームルーター／モバイル）？何台つないでいますか？',
+    solutions:[['通信料金見直し総合相談（通信料金シミュレーション）','https://www.pcdepot.co.jp/consult/networkcost/'],['訪問サポートサービス（ネットがつながらない・ルーター設定）','https://www.pcdepot.co.jp/consult/visit/'],['パソコンクリニック／ドクタースマート（診断）','https://www.pcdepot.co.jp/consult/']],
+    script:'「ネットの不調は“回線のせい”と決めつけず、つなぎ方と料金を一緒に見直すのが早道です。通信料金見直し総合相談では、いまのご利用環境に合ったプランをご提案します。設定が不安な場合は訪問サポートもございます。」',
+    followups:['回線の種類は何ですか','何台の機器をつないでいますか','今のお支払い額は月いくらですか'] },
+
+  { id:'security', label:'セキュリティ・ウイルス・詐欺', icon:'🛡️',
+    triggers:[['ウイルス',4],['セキュリティ',3],['不正',3],['乗っ取り',4],['身代金',4],['ランサム',4],['見たことのない画面',4],['怪しいメール',4],['あやしいメール',4],['詐欺',4],['フィッシング',4],['偽の警告',4],['広告がたくさん',3],['勝手に',3],['警告が出',3],['個人情報',3],['不正請求',4],['対策していない',3],['何も対策',3]],
+    question:'警告が出たのはいつですか？クレジットカード情報などの入力をしてしまっていませんか？',
+    solutions:[['インターネット安全対策セット（ウイルス対策カスペルスキー セキュリティ／デジタルデータバックアップ／詐欺サイト対策 インターネットサギウォール）','https://www.pcdepot.co.jp/products/antivirusset/'],['パソコンクリニック（持ち込みの無料診断・技術相談）','https://www.pcdepot.co.jp/consult/'],['まかせて安心技術サポート','https://www1.pcdepot.co.jp/']],
+    script:'「“勝手に画面が出る”“警告が消えない”は早めの確認が肝心です。クリニックで状態を診断し、必要な分だけ対策をご提案します。インターネット安全対策セットは、ウイルス対策・データバックアップ・詐欺サイト対策をまとめて設定まで行います。」',
+    followups:['何か入力してしまいましたか','警告はどのサイトで出ましたか','いま対策ソフトは入っていますか'] },
+
+  { id:'backup', label:'データ・写真のバックアップ不安', icon:'☁️',
+    triggers:[['バックアップ',4],['写真が消え',5],['写真が消えそう',5],['消えそう',4],['なくしたら',3],['外付け',3],['クラウド',3],['保存方法',3],['整理できていな',3],['写真がたまりすぎ',3],['スマホを落と',4],['何かの時に',2]],
+    question:'いま写真や書類はどこに保存されていますか（本体のみ／外付け／クラウド）？',
+    solutions:[['データバックアップサービス','https://www.pcdepot.co.jp/products/databackup/'],['インターネット安全対策セット（デジタルデータバックアップ）','https://www.pcdepot.co.jp/products/antivirusset/'],['パソコン買替えサポートパック（データ移行用の外付けHDD付き）','https://www.pcdepot.co.jp/products/pckaikae/index.html']],
+    script:'「“消えてから”では遅いので、いまのうちが一番お得です。設定するだけで自動バックアップされる形にすると安心ですよ。面倒な設定と初回バックアップは当店で承ります。」',
+    followups:['写真は何年分くらいありますか','月々の費用をかけたくないですか','移行は当日でよいですか'] },
+
+  { id:'recovery', label:'データ復旧・消えたデータ', icon:'🚑',
+    triggers:[['消えてしまった',5],['消えた',4],['削除してしまった',5],['初期化して',5],['初期化した',5],['データが読め',5],['データが消',4],['認識しな',4],['取り出せ',4],['取り出したい',5],['取り戻したい',5],['読み取れ',4],['読み込め',3],['出したい',2],['復旧',4],['復元',4],['救出',4],['HDD',2],['SSD',2],['USBメモリ',2],['フォーマット',4]],
+    question:'データが入っていた機器の種類と、いつ気づいたかを教えてください。その後の操作（再起動・初期化など）はされましたか？',
+    solutions:[['データ復旧・救出サービス','https://www.true-recovery.net/catalog/pcdepo.html'],['パソコンクリニック／ドクタースマート（まず診断）','https://www.pcdepot.co.jp/consult/'],['データバックアップサービス（復旧後の再発防止）','https://www.pcdepot.co.jp/products/databackup/']],
+    script:'「データは操作を重ねるほど復旧しにくくなります。電源を切った状態でそのままお持ち込みください。まず復旧できるかを見極め、費用はお見積り後にご相談となります。」',
+    followups:['初期化や再フォーマットをしましたか','データは業務利用ですか','お急ぎですか'] },
+
+  { id:'transfer', label:'買い替え・データ移行', icon:'🔄',
+    triggers:[['買い替え',4],['買い替える',4],['新しいパソコン',3],['引っ越し',3],['移行',4],['データを移',4],['新しいスマホに',3],['機種変更',3],['セットアップ',3],['初期設定',3],['自分でできるか',3],['やり方がわからな',3]],
+    question:'新しい機器はもうお手元にありますか？データは何を移したいですか（写真・メール・Office・ブックマークなど）？',
+    solutions:[['パソコン買替えサポートパック（データ移行サービス付き）','https://www.pcdepot.co.jp/products/pckaikae/index.html'],['Value Pack（プレミアムメンバー向け初期設定サポート）','https://www.pcdepot.co.jp/products/for_premium_member/vp/index.html'],['データバックアップサービス','https://www.pcdepot.co.jp/products/databackup/']],
+    script:'「パソコンの引っ越しは、写真・メール・Office・ブックマークまで含めると意外に手間です。初期設定とデータ移行をまとめてお任せいただけます。移行用の外付けHDDが付くお得なパックもございます。」',
+    followups:['新しい機器はご購入済みですか','移したいデータは何ですか','設定は当日完了がご希望ですか'] },
+
+  { id:'printer', label:'プリンター・周辺機器', icon:'🖨️',
+    triggers:[['プリンタ',4],['プリンター',4],['複合機',4],['印刷できな',5],['印刷',2],['インク',3],['年賀状',4],['スキャン',3],['接続できな',3],['スマホから印刷',4],['写真印刷',3],['エプソン',2],['キヤノン',2]],
+    question:'プリンターの機種と、無線かUSBかを教えてください。何を印刷したいですか（年賀状・写真・書類）？',
+    solutions:[['パソコンクリニック／ドクタースマート（周辺機器の診断）','https://www.pcdepot.co.jp/consult/'],['訪問サポートサービス（つながらない・設定のご自宅解決）','https://www.pcdepot.co.jp/consult/visit/'],['まかせて安心技術サポート','https://www1.pcdepot.co.jp/']],
+    script:'「印刷できない原因は、ケーブル・無線・ドライバーと様々です。新しいプリンターを買って、つなぐまでをお任せいただく形なら安心です。年賀状の時期は混み合いますので早めがおすすめです。」',
+    followups:['無線ですか、USBですか','年賀状の時期までに必要ですか','買い替えもご検討ですか'] },
+
+  { id:'family', label:'家族・シニア・子どものデジタルサポート', icon:'👨‍👩‍👧',
+    triggers:[['母が',4],['父が',4],['お母さん',3],['お父さん',3],['祖母',4],['祖父',4],['おばあ',4],['おじい',4],['高齢',4],['シニア',4],['一人暮らし',3],['子ども',3],['息子',3],['娘',3],['孫',2],['使い方を教え',4],['わからないみたい',3],['代わりに相談',3],['遠くに住んで',3],['家族の',2]],
+    question:'ご本人は一緒に来店できますか？どなたが普段サポートされていますか？',
+    solutions:[['スマートライフメンバーズクラブ（ご家庭に専属のデジタルライフプランナー）','https://www.pcdepot.co.jp/recruit/digital-life-planner/about/'],['パソコンクリニック／ドクタースマート（予約不要・他店購入品OK）','https://www.pcdepot.co.jp/consult/'],['訪問サポートサービス（ご自宅に伺って解決）','https://www.pcdepot.co.jp/consult/visit/']],
+    script:'「ご家族に代わって全部を聞かれるのも大変ですよね。スマートライフメンバーズクラブなら、ご家庭の“デジタル担当”が伴走します。ご本人が手元で分かるまで、何度でもご相談いただけます。」',
+    followups:['ご本人もご一緒に来られますか','今どなたが対応されていますか','訪問と来店、どちらが楽ですか'] },
+
+  { id:'cost', label:'出費・料金への不安', icon:'💰',
+    triggers:[['高い',3],['高すぎ',4],['予算',3],['費用',3],['いくら',3],['月々',3],['お得',2],['節約',3],['値段',2],['見積',2],['まとめたい',2],['ポイント',1]],
+    question:'ご予算の上限と、いま毎月お支払いいただいている金額を教えていただけますか？',
+    solutions:[['通信料金見直し総合相談（通信料金シミュレーション）','https://www.pcdepot.co.jp/consult/networkcost/'],['中古品買取（ご不要な機器の買取）','https://www1.pcdepot.co.jp/'],['パソコンクリニック（診断・技術相談）（料金は店頭でご確認ください）','https://www.pcdepot.co.jp/consult/']],
+    script:'「ご予算の中で“いま必要なものだけ”を選びましょう。ご不要な機器がございましたら買取で充当できます。通信費も見直すと、月々の負担が下がることがあります。」',
+    followups:['毎月の支払い総額はいくらですか','不用な機器はありますか','買取で充当したいですか'] },
+
+  { id:'disposal', label:'不要な機器の処分・買取・下取り', icon:'♻️',
+    triggers:[['処分',4],['捨て',3],['買取',4],['下取り',4],['使わなくなった',3],['しまってある',3],['押し入れ',3],['古いパソコンが',3],['引き取',3],['売りたい',4],['タブレットが',2],['ガラケー',2]],
+    question:'機器の種類と台数、動作するか（起動するか）を教えてください。中に残したいデータはありますか？',
+    solutions:[['中古品買取（店頭での買取）','https://www1.pcdepot.co.jp/'],['パソコンクリニック／ドクタースマート（動作確認・データ相談）','https://www.pcdepot.co.jp/consult/'],['パソコン買替えサポートパック（買い替え時のデータ移行とセットで）','https://www.pcdepot.co.jp/products/pckaikae/index.html']],
+    script:'「しまってある機器は、動くうちに査定するのが一番お得です。データの確認と消去のご相談も承ります。買い替えと同時なら、データ移行とまとめてお任せください。」',
+    followups:['何台お持ちですか','起動しますか','データの消去もご希望ですか'] },
+
+  { id:'premium', label:'まとめて任せたい（初期設定・メンテナンス）', icon:'⭐',
+    triggers:[['任せたい',3],['おまかせ',3],['まとめて',3],['自分では',3],['苦手',3],['面倒',3],['毎回不安',3],['メンテナンス',3],['相談できる人',4],['窓口',2],['会員',2]],
+    question:'今お困りのことを全部教えてください。月々の費用と手間、どちらを減らしたいですか？',
+    solutions:[['スマートライフメンバーズクラブ（専属デジタルライフプランナー）','https://www.pcdepot.co.jp/recruit/digital-life-planner/about/'],['Value Pack（プレミアムメンバー向けサポート）','https://www.pcdepot.co.jp/products/for_premium_member/vp/index.html'],['まかせて安心技術サポート','https://www1.pcdepot.co.jp/']],
+    script:'「一つずつ解決するより“担当者にまとめて任せる”ほうが結果的に安く、安心です。初期設定から定期メンテナンス、分からないたびの相談まで含めてご用意できます。」',
+    followups:['月々の費用と手間、どちらを減らしたいですか','今の困りごとを全部あげると何個ですか','ご家族分もまとめますか'] },
+
+  { id:'purchase', label:'買い方・選び方が不明', icon:'🛒',
+    triggers:[['どれがいい',4],['選び方がわからな',4],['おすすめは',3],['どっちがいい',3],['迷って',3],['スペック',3],['何を基準',4],['どこで買',3],['動画編集',3],['ゲーム',2],['仕事用',3],['大学生',3],['テレワーク',3],['Zoom',2]],
+    question:'主な用途（仕事／在宅会議／テレビ視聴／ゲーム）と、月々か一括のご希望を教えてください。',
+    solutions:[['パソコンクリニック／ドクタースマート（用途の相談）','https://www.pcdepot.co.jp/consult/'],['Value Pack（購入時の初期設定・安心設定まで）','https://www.pcdepot.co.jp/products/for_premium_member/vp/index.html'],['まかせて安心技術サポート','https://www1.pcdepot.co.jp/']],
+    script:'「用途が決まれば、高いものを買う必要はありません。オンライン会議・動画・Officeのどれを使うかで選び方は変わります。買ってから“使えない”がないよう、設定まで含めてご提案します。」',
+    followups:['主な用途は何ですか','持ち運びますか','一括と月々どちらがよいですか'] }
 ];
 
-function analyze(){
- const text=document.getElementById("conversation").value.trim();
- if(!text){showAlert("会話を入力してください。");return}
- document.getElementById("alert").style.display="none";
- const hits=rules.filter(r=>r.keys.some(k=>text.toLowerCase().includes(k.toLowerCase())));
- let unique=[...new Map(hits.map(x=>[x.category,x])).values()];
- if(!unique.length){
-   unique=[{category:"潜在ニーズ未特定",pain:"会話だけでは具体的な不便を特定できませんでした",needs:"「困っていること」「面倒なこと」「諦めていること」を追加で確認",solutions:["デジタル環境の総点検","よく使う端末・サービスの棚卸し"],q:"普段デジタル機器を使っていて、「もっと簡単になればいいのに」と思うことはありますか？"}];
- }
- document.getElementById("result").innerHTML=unique.map((r,i)=>`
- <div class="item" style="margin-bottom:10px"><span class="score">候補 ${i+1}</span><span class="tag">${r.category}</span>
- <div class="value">${r.pain}</div><p class="hint">${r.needs}</p></div>`).join("");
- document.getElementById("solutions").innerHTML=unique.flatMap(r=>r.solutions.map((s,i)=>`
- <div class="solution"><strong>${s}</strong><span class="hint">${r.category}に関連する提案候補</span></div>`)).join("");
- document.getElementById("questions").innerHTML=unique.map(r=>`<div class="question">「${r.q}」</div>`).join("");
+const URGENCY = [['今すぐ',3],['すぐに',2],['急ぎ',3],['急いで',3],['明日まで',4],['今日中',4],['至急',4],['壊れて',3],['動かない',3],['水没',4],['消えて',3],['初期化',3],['締め切り',3],['年賀状',1]];
+
+function analyze(text){
+  const src = (text||'').toString();
+  const lower = src.toLowerCase();
+  const pains = [];
+  let urgencyScore = 0; const urgencyHits = [];
+
+  URGENCY.forEach(function(u){
+    if (src.indexOf(u[0]) !== -1 || lower.indexOf(u[0].toLowerCase()) !== -1){
+      urgencyScore += u[1];
+      if (urgencyHits.indexOf(u[0]) === -1) urgencyHits.push(u[0]);
+    }
+  });
+
+  TAXONOMY.forEach(function(cat){
+    let raw = 0; const hits = [];
+    cat.triggers.forEach(function(t){
+      const p = t[0];
+      if (src.indexOf(p) !== -1 || lower.indexOf(p.toLowerCase()) !== -1){
+        raw += t[1];
+        if (hits.indexOf(p) === -1) hits.push(p);
+      }
+    });
+    if (hits.length > 0){
+      raw += Math.min(hits.length - 1, 3);
+      pains.push({ id:cat.id, label:cat.label, icon:cat.icon, score:raw, hits:hits,
+        question:cat.question, solutions:cat.solutions, script:cat.script, followups:cat.followups });
+    }
+  });
+
+  pains.sort(function(a,b){ return b.score - a.score || a.label.localeCompare(b.label,'ja'); });
+  const max = pains.length ? pains[0].score : 0;
+  pains.forEach(function(p){
+    const rel = max ? p.score/max : 0;
+    p.priority = (p.score >= 10 || (rel >= 0.8 && p.score >= 8)) ? '最優先'
+                : (p.score >= 6 || rel >= 0.55) ? '優先' : '様子見';
+    p.priorityScore = Math.max(5, Math.min(100, Math.round(p.score*5 + urgencyScore*2)));
+    p.barWidth = Math.max(8, Math.min(100, Math.round((p.score/(max||1))*100)));
+  });
+
+  let urgencyLevel = '通常';
+  if (urgencyScore >= 8) urgencyLevel = '至急';
+  else if (urgencyScore >= 4) urgencyLevel = 'やや急ぎ';
+  else if (urgencyScore > 0) urgencyLevel = '軽微';
+
+  const breadth = pains.length;
+  return { inputLength: src.length, pains: pains, top: pains.slice(0,3),
+    urgencyLevel: urgencyLevel, urgencyScore: urgencyScore, urgencyHits: urgencyHits,
+    breadth: breadth,
+    breadthLabel: breadth >= 5 ? 'てんこ盛り相談' : breadth >= 3 ? '複数のご相談' : breadth >= 1 ? '単一のご相談' : '未検出',
+    note: CONFIRM_NOTE };
 }
-function showAlert(t){const a=document.getElementById("alert");a.textContent=t;a.style.display="block"}
-function clearAll(){document.getElementById("conversation").value="";document.getElementById("result").innerHTML='<p class="hint">会話を分析すると、ここに表示されます。</p>';document.getElementById("solutions").innerHTML='<p class="hint">分析結果に応じて提案候補が表示されます。</p>';document.getElementById("questions").innerHTML='<p class="hint">会員様への自然な追加質問を表示します。</p>';document.getElementById("alert").style.display="none"}
+
+/* ===================== 画面 ===================== */
+const SAMPLES = [
+  { label:'6年目のPCが遅い＋Wi-Fiが切れる＋スマホ代が高い',
+    text:'今年で6年目になるパソコンなんですけど、最近遅くて、電源が入るまでに5分くらいかかります。あと家のWi-Fiがよく切れて、動画を見てるとカクカクします。スマホの料金も高い気がしていて、見直しをしたいです。' },
+  { label:'母のスマホ操作＋自分の写真が消えそう',
+    text:'母がスマホの使い方がわからなくて、毎回わたしに電話がきます。あと自分のスマホの写真が消えそうで怖いです。バックアップってどうやるんですか。' },
+  { label:'起動しない＋写真を取り出したい＋年賀状の印刷',
+    text:'パソコンが起動しなくなって、電源が入らないんです。中の写真を取り出したいです。あと明日までに年賀状を印刷したいのにプリンタで印刷できません。' },
+  { label:'見たことのない警告画面が出て消えない',
+    text:'何もしていないのに見たことのない画面が出て、ウイルスに感染したという警告が消えません。カード情報を入れてしまったかもしれません。こわいです。' },
+  { label:'祖母の家のネット設定を何とかしたい',
+    text:'祖母が一人暮らしで、新しいルーターを買ったのにネットがつながらないみたいです。遠くに住んでいるので、わたしが行くまで直せません。' }
+];
+
+const DEFAULT_QUESTIONS = [
+  'いちばん困っているのは、パソコン・スマホ・ネット・プリンターのどれですか？',
+  'それはいつごろからですか？（その直前に何をしましたか）',
+  'そのとき、最後にしようとしていたことは何ですか？',
+  '今の機器はご購入から何年くらい経ちますか？',
+  '月々のご予算と、一度に払える金額の上限はどのくらいですか？'
+];
+
+const el = function(id){ return document.getElementById(id); };
+const talk = el('talk'), runBtn = el('run');
+
+function make(tag, cls, txt){
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (txt !== undefined && txt !== null) n.textContent = txt;
+  return n;
+}
+
+/* サンプル会話ボタン */
+SAMPLES.forEach(function(s){
+  const b = make('button','chipsample', s.label);
+  b.type = 'button';
+  b.addEventListener('click', function(){ talk.value = s.text; render(); talk.focus(); });
+  el('samples').appendChild(b);
+});
+
+/* カテゴリ一覧 */
+TAXONOMY.forEach(function(c){
+  const box = make('div','cat');
+  box.appendChild(make('b',null, c.icon + ' ' + c.label));
+  box.appendChild(make('span',null, '例：' + c.triggers.slice(0,6).map(function(t){return t[0];}).join('、')));
+  el('catgrid').appendChild(box);
+});
+
+runBtn.addEventListener('click', render);
+el('clear').addEventListener('click', function(){
+  talk.value=''; render(); talk.focus();
+});
+talk.addEventListener('input', function(){
+  clearTimeout(talk._t);
+  talk._t = setTimeout(render, 350);
+});
+
+function render(){
+  const r = analyze(talk.value);
+  const summaryBox = el('summary'), results = el('results'), planBox = el('plan');
+  summaryBox.innerHTML = ''; results.innerHTML = ''; planBox.innerHTML = '';
+
+  if (r.breadth === 0){
+    summaryBox.classList.remove('hidden');
+    summaryBox.appendChild(make('h2',null,'ヒアリングを深めるための追加質問'));
+    summaryBox.appendChild(make('p',null,'まだ具体的なお困りごとが読み取れませんでした。次の質問で、不便の種を見つけていきましょう。'));
+    const ul = make('ul','fu');
+    DEFAULT_QUESTIONS.forEach(function(q){ ul.appendChild(make('li',null,q)); });
+    summaryBox.appendChild(ul);
+    planBox.classList.add('hidden');
+    return;
+  }
+  summaryBox.classList.remove('hidden');
+  summaryBox.appendChild(make('h2',null,'抽出サマリー'));
+  const stat = make('div','stat');
+  [['検出した不便', r.breadth + ' 件'],
+   ['いちばんの不便', r.pains[0].label],
+   ['緊急度', r.urgencyLevel + (r.urgencyHits.length ? '（' + r.urgencyHits.join('・') + '）' : '')],
+   ['相談の広がり', r.breadthLabel]
+  ].forEach(function(pair){
+    const d = make('div');
+    d.appendChild(make('span',null, pair[0]));
+    d.appendChild(make('b',null, pair[1]));
+    stat.appendChild(d);
+  });
+  summaryBox.appendChild(stat);
+
+  r.pains.forEach(function(p, i){
+    const card = make('div','card');
+    const head = make('div','chead');
+    head.appendChild(make('span','ico', p.icon));
+    head.appendChild(make('h3',null, p.label));
+    const badge = make('span','badge b-' + (p.priority === '最優先' ? 1 : p.priority === '優先' ? 2 : 3), p.priority);
+    head.appendChild(badge);
+    head.appendChild(make('span',null, '優先度スコア ' + p.priorityScore + '/100'));
+    card.appendChild(head);
+
+    const bw = make('div','barwrap');
+    const bar = make('div','bar');
+    const fill = make('i'); fill.style.width = p.barWidth + '%';
+    bar.appendChild(fill); bw.appendChild(bar);
+    bw.appendChild(make('small',null, '判定の根拠：検出キーワード ' + p.hits.length + ' 種／緊急性スコア ' + r.urgencyScore));
+    card.appendChild(bw);
+
+    const hits = make('div','hits');
+    p.hits.forEach(function(h){ hits.appendChild(make('span','hit','「' + h + '」')); });
+    card.appendChild(hits);
+
+    const s1 = make('div','sec');
+    s1.appendChild(make('div','lb','まず聞くこと'));
+    s1.appendChild(make('div',null, p.question));
+    card.appendChild(s1);
+
+    const s2 = make('div','sec');
+    s2.appendChild(make('div','lb','おすすめの解決策（PCデポ）'));
+    p.solutions.forEach(function(sol){
+      const a = make('a','sol');
+      a.href = sol[1]; a.target = '_blank'; a.rel = 'noopener';
+      a.appendChild(document.createTextNode(sol[0]));
+      a.appendChild(make('small',null, sol[1]));
+      s2.appendChild(a);
+    });
+    card.appendChild(s2);
+
+    const s3 = make('div','sec');
+    s3.appendChild(make('div','lb','トークスクリプト（そのままお使いいただけます）'));
+    s3.appendChild(make('div','script', p.script));
+    card.appendChild(s3);
+
+    const s4 = make('div','sec');
+    s4.appendChild(make('div','lb','続けて確認したいこと'));
+    const ul = make('ul','fu');
+    p.followups.forEach(function(f){ ul.appendChild(make('li',null,f)); });
+    s4.appendChild(ul);
+    card.appendChild(s4);
+
+    results.appendChild(card);
+  });
+
+  /* 提案メモ */
+  planBox.classList.remove('hidden');
+  planBox.appendChild(make('h2',null,'会員様向け 提案メモ（上から優先順）'));
+  const memo = buildMemo(r);
+  planBox.appendChild(make('div','planbox', memo));
+  planBox.appendChild(make('div','note','※ ' + CONFIRM_NOTE + '。在庫・対応可否は店舗により異なります。'));
+  planBox._memo = memo;
+}
+
+function buildMemo(r){
+  const lines = [];
+  lines.push('■ ご相談内容（お伺いした内容の整理）');
+  r.pains.slice(0,5).forEach(function(p){ lines.push('・' + p.label + '（優先度：' + p.priority + '）'); });
+  if (r.urgencyHits.length) lines.push('・緊急性の高いご様子：' + r.urgencyHits.join('、'));
+  lines.push('');
+  lines.push('■ ご提案');
+  const seen = [];
+  r.top.forEach(function(p){
+    p.solutions.forEach(function(s){
+      if (seen.indexOf(s[0]) === -1){ seen.push(s[0]); }
+    });
+  });
+  seen.slice(0,5).forEach(function(name, i){ lines.push((i+1) + '. ' + name); });
+  lines.push('');
+  lines.push('■ 次に伺うこと');
+  r.top.forEach(function(p){ lines.push('・' + p.question); });
+  r.top.forEach(function(p){ p.followups.forEach(function(f){ lines.push('・' + f); }); });
+  lines.push('');
+  lines.push('※ 料金・提供条件は店頭でご確認ください。');
+  return lines.join('\n');
+}
+
+/* クリップボード */
+function copy(text, flag){
+  function done(){ flag.textContent='コピーしました'; setTimeout(function(){ flag.textContent=''; }, 2200); }
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, function(){ fallback(text, done); });
+  } else { fallback(text, done); }
+}
+function fallback(text, done){
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch(e){ alert('コピーできませんでした。テキストを選択してコピーしてください。'); }
+  document.body.removeChild(ta);
+}
+el('copyall').addEventListener('click', function(){
+  const r = analyze(talk.value);
+  const text = r.breadth ? buildMemo(r) : ('■ 追加で伺うこと\n' + DEFAULT_QUESTIONS.map(function(q){return '・'+q;}).join('\n'));
+  copy(text, el('copyflag'));
+});
+
+/* 初期表示：サンプルで自動解析 */
+talk.value = SAMPLES[0].text;
+render();
 </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
