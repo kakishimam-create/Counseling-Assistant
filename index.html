@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>デジタルライフプランナー｜会話サポート</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif;background:#f5f7fa;color:#18212b}
+header{background:#123a63;color:white;padding:18px 28px;display:flex;justify-content:space-between;align-items:center}
+header h1{font-size:20px;margin:0} header span{font-size:13px;opacity:.85}
+main{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;padding:20px;max-width:1400px;margin:auto}
+.card{background:white;border:1px solid #dfe5eb;border-radius:12px;padding:18px;box-shadow:0 2px 8px #00000008}
+h2{font-size:17px;margin:0 0 14px}.hint{font-size:13px;color:#66727e;line-height:1.6}
+textarea{width:100%;height:300px;border:1px solid #cbd5df;border-radius:8px;padding:13px;font-size:15px;line-height:1.7;resize:vertical}
+button{border:0;border-radius:8px;padding:11px 18px;background:#1769aa;color:white;font-weight:700;cursor:pointer;margin-top:10px}
+button.secondary{background:#eef3f7;color:#28465f;margin-left:7px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.item{border:1px solid #e0e6eb;border-radius:9px;padding:12px;background:#fbfcfd}.label{font-size:12px;color:#75818d}.value{font-size:15px;font-weight:700;margin-top:4px}
+.tag{display:inline-block;padding:5px 9px;background:#eaf4ff;color:#125b91;border-radius:99px;font-size:12px;margin:3px}
+.solution{border-left:4px solid #1769aa;background:#f7fbff;padding:12px;margin:9px 0;border-radius:5px}
+.solution strong{display:block;margin-bottom:4px}.score{float:right;font-size:12px;color:#1769aa}
+.question{background:#fff8e8;border:1px solid #f1d899;padding:11px;border-radius:7px;margin-top:8px}
+.alert{display:none;background:#fff0f0;color:#9d2626;padding:10px;border-radius:7px;margin-top:10px;font-size:13px}
+@media(max-width:850px){main{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1>PC DEPOT｜デジタルライフプランナー 会話サポート</h1><span>会話から「困りごと」を見つけ、提案につなげる</span></header>
+<main>
+<section class="card">
+<h2>① 会員様との会話を入力</h2>
+<p class="hint">雑談を含めて、そのまま貼り付けてください。複数の発言でもOKです。</p>
+<textarea id="conversation" placeholder="例：
+会員様：最近スマホの写真がいっぱいになっちゃって。
+スタッフ：どのくらい撮られますか？
+会員様：旅行に行くと一気に増えます。パソコンにも移したいんだけど、やり方がよく分からなくて……。
+会員様：あと、家族で写真を共有できたら便利なんだけど。"></textarea>
+<button onclick="analyze()">会話を分析する</button><button class="secondary" onclick="clearAll()">クリア</button>
+<div id="alert" class="alert"></div>
+</section>
+
+<section class="card">
+<h2>② 抽出された「潜在的な不便」</h2>
+<div id="result"><p class="hint">会話を分析すると、ここに表示されます。</p></div>
+</section>
+
+<section class="card">
+<h2>③ デジタルライフ提案候補</h2>
+<div id="solutions"><p class="hint">分析結果に応じて提案候補が表示されます。</p></div>
+</section>
+
+<section class="card">
+<h2>④ 次に聞くと提案精度が上がる質問</h2>
+<div id="questions"><p class="hint">会員様への自然な追加質問を表示します。</p></div>
+</section>
+</main>
+<script>
+const rules=[
+ {keys:["写真","画像","動画","容量","いっぱい","保存"],category:"写真・データ管理",
+  pain:"写真・動画の保存先や容量に不安がある可能性",needs:"「保存する」だけでなく「整理・共有・バックアップ」まで含めた環境づくり",
+  solutions:["写真バックアップ環境の整理","スマホとPC・クラウドの写真共有環境","ストレージ容量の見直し"],q:"写真は「保存できればOK」ですか？ それとも家族で見たり、探しやすく整理したいですか？"},
+ {keys:["Wi-Fi","wifi","遅い","つながらない","電波","ネット"],category:"ネット・Wi-Fi",
+  pain:"家の中の通信品質に不満がある可能性",needs:"利用場所・端末・通信量を確認して家庭内ネット環境を整理",
+  solutions:["Wi-Fi環境の診断","ルーター・メッシュWi-Fiの見直し","家族の端末を含めた通信環境整理"],q:"特に困る場所はどこですか？ また、時間帯によって変わりますか？"},
+ {keys:["遅い","重い","パソコン","PC","起動","動かない","買い替え"],category:"PC・端末",
+  pain:"端末性能または使い方に不便を感じている可能性",needs:"買い替えだけでなく、設定・整理・使い方を含めて原因を切り分ける",
+  solutions:["PCの状態・容量・設定の確認","用途に合わせた端末見直し","データ移行・初期設定サポート"],q:"一番ストレスを感じるのは、起動・動作・容量・操作のどれですか？"},
+ {keys:["パスワード","ログイン","アカウント","忘れ","管理"],category:"アカウント・セキュリティ",
+  pain:"アカウント管理や安全性に負担を感じている可能性",needs:"使っているサービスを整理し、安全かつ管理しやすい状態にする",
+  solutions:["アカウント整理","パスワード管理環境の見直し","二段階認証など安全設定の確認"],q:"ログイン情報を紙・スマホ・ブラウザなど、どこで管理していますか？"},
+ {keys:["家族","共有","子ども","子供","夫","妻","親","両親"],category:"家族のデジタル共有",
+  pain:"家族間の情報共有・端末利用に手間がある可能性",needs:"誰が・何を・どの端末で共有したいかを整理する",
+  solutions:["家族写真・ファイル共有環境","家族の端末設定・利用ルール整理","複数端末をまとめたサポート"],q:"ご家族の中で、誰と何を共有できると一番便利になりそうですか？"},
+ {keys:["仕事","在宅","リモート","オンライン会議","会議","資料"],category:"仕事・学習環境",
+  pain:"仕事や学習でデジタル操作・環境に負担がある可能性",needs:"作業内容に合わせて端末・周辺機器・データ連携を整理",
+  solutions:["在宅ワーク環境の見直し","モニター・キーボード等の作業環境改善","PC・スマホ間のデータ連携整理"],q:"一日の中で、デジタル作業に一番時間がかかっている作業は何ですか？"},
+ {keys:["タップ","入力","打つ","入力が面倒","手入力","手間"],category:"入力・操作の省力化",
+  pain:"同じ情報を何度も入力するなど、操作に時間がかかっている可能性",needs:"「何を繰り返しているか」を特定して入力・操作を短縮",
+  solutions:["定型入力・辞書・ショートカットの活用","スマホとPCの連携による入力省力化","よく使う操作の手順整理"],q:"同じ内容を何度も入力する場面は、具体的にどんな時ですか？"}
+];
+
+function analyze(){
+ const text=document.getElementById("conversation").value.trim();
+ if(!text){showAlert("会話を入力してください。");return}
+ document.getElementById("alert").style.display="none";
+ const hits=rules.filter(r=>r.keys.some(k=>text.toLowerCase().includes(k.toLowerCase())));
+ let unique=[...new Map(hits.map(x=>[x.category,x])).values()];
+ if(!unique.length){
+   unique=[{category:"潜在ニーズ未特定",pain:"会話だけでは具体的な不便を特定できませんでした",needs:"「困っていること」「面倒なこと」「諦めていること」を追加で確認",solutions:["デジタル環境の総点検","よく使う端末・サービスの棚卸し"],q:"普段デジタル機器を使っていて、「もっと簡単になればいいのに」と思うことはありますか？"}];
+ }
+ document.getElementById("result").innerHTML=unique.map((r,i)=>`
+ <div class="item" style="margin-bottom:10px"><span class="score">候補 ${i+1}</span><span class="tag">${r.category}</span>
+ <div class="value">${r.pain}</div><p class="hint">${r.needs}</p></div>`).join("");
+ document.getElementById("solutions").innerHTML=unique.flatMap(r=>r.solutions.map((s,i)=>`
+ <div class="solution"><strong>${s}</strong><span class="hint">${r.category}に関連する提案候補</span></div>`)).join("");
+ document.getElementById("questions").innerHTML=unique.map(r=>`<div class="question">「${r.q}」</div>`).join("");
+}
+function showAlert(t){const a=document.getElementById("alert");a.textContent=t;a.style.display="block"}
+function clearAll(){document.getElementById("conversation").value="";document.getElementById("result").innerHTML='<p class="hint">会話を分析すると、ここに表示されます。</p>';document.getElementById("solutions").innerHTML='<p class="hint">分析結果に応じて提案候補が表示されます。</p>';document.getElementById("questions").innerHTML='<p class="hint">会員様への自然な追加質問を表示します。</p>';document.getElementById("alert").style.display="none"}
+</script>
+</body>
+</html>
